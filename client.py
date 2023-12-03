@@ -8,14 +8,14 @@ if __name__ == "__main__":
             print(f"Usage: {sys.argv[0]} <host> <port>")
             sys.exit(1)
 
-    HOST = sys.argv[1]  # Symbolic name meaning all available interfaces
-    PORT = int(sys.argv[2])  # Arbitrary non-privileged port
+    HOST = sys.argv[1]
+    PORT = int(sys.argv[2])
     
     is_started = False
+
     while IS_RECONNECT_ENABLED or not is_started:
         is_started = True
-        print()
-        print("Create client")
+        print("\nCreate client")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.connect((HOST, PORT))
@@ -41,7 +41,9 @@ if __name__ == "__main__":
                     if not data:
                         print("Closed by server")
                         break
-                    
+
             except KeyboardInterrupt:
                 print("Client disconnected")
+            
+            finally:
                 sock.close()
