@@ -1,9 +1,11 @@
-import sys
-import socket
-import threading
-import datetime
+import sys, socket, datetime
+from threading import Thread 
+from PyQt5 import QtWidgets, QtCore
+from server_design import Ui_MainWindow  # импорт сгенерированного файла
 
 stop = False
+sock = None
+app = None
 
 def collectInfo():
     pass
@@ -48,8 +50,18 @@ def handle_connection(sock, addr):  # New
         
         print("Disconnected by", addr)
 
-if __name__ == "__main__":
-    try:
+class mywindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super(mywindow, self).__init__()
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+
+class ServerThread(Thread):
+    def __init__(self,window): 
+        Thread.__init__(self) 
+        self.window=window
+
+    def run(self): 
         HOST = "localhost"
         PORT = 2233
         
@@ -60,9 +72,11 @@ if __name__ == "__main__":
 
             try:
                 while True:
+                    global sock
+
                     print("Waiting for connection...")
                     sock, addr = serv_sock.accept()
-                    t = threading.Thread(target=handle_connection, args=(sock, addr))  # New
+                    t = Thread(target=handle_connection, args=(sock, addr))  # New
                     t.start()
 
             except KeyboardInterrupt:
@@ -72,5 +86,20 @@ if __name__ == "__main__":
                 stop = True
                 serv_sock.close()
 
-    except OSError:
-        print("The server already in use")
+
+if __name__ == '__main__':
+    lockfile = QtCore.QLockFile(QtCore.QDir.tempPath() + '/server_1.lock')
+
+    if lockfile.tryLock(100):
+        app = QtWidgets.QApplication(sys.argv)
+        
+        window = mywindow()
+        serverThread=ServerThread(window)
+        serverThread.start()
+        window.show()
+        
+        sys.exit(app.exec_())
+    else:
+        print("Server_1 already in use")
+
+
