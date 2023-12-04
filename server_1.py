@@ -12,9 +12,6 @@ app = None
 title =''
 changeWinTitleStatus = 0
 
-def collectInfo():
-    pass
-
 def handle_connection(sock, addr, window):
     with sock:
         print("Connected by", addr)
@@ -33,35 +30,42 @@ def handle_connection(sock, addr, window):
             if not data:
                 break
 
+            
             # Добавление времени в ответное сообщение 
             now = datetime.datetime.now()
             answer = now.strftime("%d-%m-%Y %H:%M:%S")
+            answer += " Ширина и высота окна получены"
 
             # Если пришел запрос на изменение заголовка
             if(data.find(" | ") != -1):
                 data = data.split(" | ")
+                window.addItem('Клиент: ', data[0])
+                window.addItem('Клиент: ', data[1])
+
                 win_geometry = data[0]
                 
                 global title
                 title = data[1]
-                
+
                 window.changeTitle()
                 QThread.msleep(100)
-                print("TITLE: ", window.windowTitle())
-                
+
                 # Проверка смены заголовка
                 if(window.windowTitle() == title):
-                    answer += " Смена заголовка: Успешно"
+                    answer += " | Смена заголовка: Успешно"
                 else:
-                    answer += " Смена заголовка: Ошибка"
-                
-            # data += collectInfo()
-            
+                    answer += " | Смена заголовка: Ошибка"
+            else:
+                win_geometry = data
+                window.addItem('Клиент: ', data)
+
             # Отправка ответа Клиенту
             print(f"Send: {answer} to: {addr}")
             
             try:
                 sock.sendall(answer.encode())
+                window.addItem('Сервер: ', answer)
+
             
             except ConnectionError:
                 print(f"Client suddenly closed, cannot send")
@@ -99,14 +103,8 @@ class mywindow(QMainWindow):
         self.thread.threadSignal.connect(self.setWindowTitle)
         self.thread.start()
 
-    def checkWindowTitle(self):
-        global title
-        global changeWinTitleStatus
-
-        if(title == self.windowTitle()):
-            changeWinTitleStatus = 1
-
-        changeWinTitleStatus = 0
+    def addItem(self, str, data):
+        self.ui.listWidget.addItem(str + data)
 
 class ServerThread(Thread):
     def __init__(self, window): 

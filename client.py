@@ -12,6 +12,7 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.sendToServer_1.clicked.connect(self.server_1_Btn_click)
+        self.ui.sendToServer_2.clicked.connect(self.server_2_Btn_click)
 
     # Отправка на сервер
     def server_1_Btn_click(self):
@@ -26,9 +27,18 @@ class mywindow(QtWidgets.QMainWindow):
             self.ui.lineEdit.clear()
 
         sock.sendall(data.encode())
+        self.ui.listWidget.addItem('Клиент: ' + data)
+
+    def server_2_Btn_click(self):
+        data = 'swap'
+        sock.sendall(data.encode())
+        self.ui.listWidget.addItem('Клиент: ' + data)
+
+    def addItem(self, data):
+        self.ui.listWidget.addItem('Сервер: ' + data)
 
 class ClientThread(Thread):
-    def __init__(self,window): 
+    def __init__(self, window): 
         Thread.__init__(self) 
         self.window=window
  
@@ -49,14 +59,21 @@ class ClientThread(Thread):
                 
                 try:
                     while True:                        
-                        # Receive
+                        # Получение ответа от сервера
                         data_bytes = sock.recv(1024)
                         data = data_bytes.decode()
-                        print("Received:", repr(data))
+                        print("Received: ", repr(data))
                         
                         if not data:
                             print("Closed by server")
                             break
+
+                        if(data.find(" | ") != -1):
+                            data = data.split(" | ")
+                            window.addItem(data[0])
+                            window.addItem(data[1])
+                        else:
+                            window.addItem(data)
 
                 except KeyboardInterrupt:
                     print("Client disconnected")
