@@ -11,8 +11,12 @@ class UpdatePeriod(Enum):
     FIFETEEN_MIN = 15
     ONE_HOUR = 60
 
-sock = None
-sockStatus = 0
+HOST = "localhost"
+PORT = [2233, 2234]
+
+BUF_SIZE = 1024
+sock = [None, None]
+sockStatus = [0, 0]
 IS_RECONNECT_ENABLED = False
 updateTimer = UpdatePeriod.OFF.value
 
@@ -37,7 +41,7 @@ class mywindow(QtWidgets.QMainWindow):
     def server_1_Btn_click(self):
         global sock
 
-        if(sockStatus != 0):
+        if(sockStatus[0] != 0):
             # получение ширины и высоты окна 
             data = str(self.ui.centralwidget.geometry().width())
             data += 'x' + str(self.ui.centralwidget.geometry().height())
@@ -48,7 +52,7 @@ class mywindow(QtWidgets.QMainWindow):
                 self.ui.lineEdit.clear()
 
             # Отправка
-            sock.sendall(data.encode())
+            sock[0].sendall(data.encode())
 
             # Вывод в графический интерфейс
             self.ui.listWidget.addItem('Клиент: ' + data)
@@ -61,11 +65,11 @@ class mywindow(QtWidgets.QMainWindow):
     def server_2_Btn_click(self):
         global sock
 
-        if(sockStatus != 0):
+        if(sockStatus[1] != 0):
             data = 'swap'
 
             # Отправка
-            sock.sendall(data.encode())
+            sock[1].sendall(data.encode())
 
             # Вывод в графический интерфейс
             self.ui.listWidget_2.addItem('Клиент: ' + data)
@@ -75,8 +79,12 @@ class mywindow(QtWidgets.QMainWindow):
             print(data)
 
     # Вывод текста в графический интерфейс
-    def addItem(self, data):
-        self.ui.listWidget.addItem('Сервер: ' + data)
+    def addItem(self, serverType, data):
+        if(serverType == 0):
+            self.ui.listWidget.addItem('Сервер: ' + data)
+        else:
+            self.ui.listWidget_2.addItem('Сервер: ' + data)
+
 
     # Выключить таймер обновления
     def onAction_1_Clicked(self):
@@ -109,14 +117,13 @@ class mywindow(QtWidgets.QMainWindow):
         print(f"Таймер обнавления: {updateTimer.name}")
 
 class ClientThread(Thread):
-    def __init__(self, window): 
+    def __init__(self, window, serverType): 
         Thread.__init__(self) 
         self.window = window
- 
-    def run(self): 
-        HOST = "localhost"
-        PORT = 2233
+        self.serverType = serverType
         
+    def run(self): 
+        global HOST, PORT
         is_started = False
 
         while IS_RECONNECT_ENABLED or not is_started:
@@ -124,34 +131,37 @@ class ClientThread(Thread):
             print("\nCreate client")
 
             global sock, sockStatus
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((HOST, PORT))
-                sockStatus = 1
-                print("Client connected")
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock[self.serverType]:
+                sock[self.serverType].connect((HOST, PORT[self.serverType]))
+                sockStatus[self.serverType] = 1
+                print(f"Server {self.serverType + 1} connected")
                 
                 try:
-                    while True:
-                        # Получение ответа от сервера
-                        data_bytes = sock.recv(1024)
-                        data = data_bytes.decode()
-                        print("Received: ", repr(data))
-                        
-                        if not data:
-                            print("Closed by server")
-                            break
-
-                        if(data.find(" | ") != -1):
-                            data = data.split(" | ")
-                            window.addItem(data[0])
-                            window.addItem(data[1])
-                        else:
-                            window.addItem(data)
+                    self.receiveFunc()
 
                 except KeyboardInterrupt:
-                    print("Client disconnected")
+                    print(f"Server {self.serverType + 1} disconnected")
                 
                 finally:
-                    sock.close()
+                    sock[self.serverType].close()
+
+    def receiveFunc(self):
+        while True:
+            # Получение ответа от сервера
+            data_bytes = sock[self.serverType].recv(BUF_SIZE)
+            data = data_bytes.decode()
+            print("Received: ", repr(data))
+            
+            if not data:
+                print("Closed by server")
+                break
+
+            if(data.find(" | ") != -1):
+                data = data.split(" | ")
+                self.window.addItem(self.serverType, data[0])
+                self.window.addItem(self.serverType, data[1])
+            else:
+                self.window.addItem(self.serverType, data)
 
 def checkUpdateTimer(window):
     global updateTimer
@@ -166,11 +176,14 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = mywindow()
 
-    clientThread = ClientThread(window)
+    clientThread = ClientThread(window, 0)
+    clientThread.start()
+
+    clientThread = ClientThread(window, 1)
     clientThread.start()
     
-    t = Thread(target= checkUpdateTimer, args= (window))  # New
-    t.start()
+    # t = Thread(target= checkUpdateTimer, args= (window))  # New
+    # t.start()
 
     window.show()
     sys.exit(app.exec_())

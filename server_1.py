@@ -9,6 +9,7 @@ from server_design import Ui_MainWindow  # импорт сгенерирован
 stop = False
 sock = None
 app = None
+BUF_SIZE = 1024
 title =''
 changeWinTitleStatus = 0
 
@@ -19,7 +20,7 @@ def handle_connection(sock, addr, window):
         while not stop:
             # Получение сообщения от Клиента
             try:
-                data = sock.recv(1024).decode()
+                data = sock.recv(BUF_SIZE).decode()
 
             except ConnectionError:
                 print(f"Client suddenly closed while receiving")

@@ -9,6 +9,7 @@ from server_design import Ui_MainWindow  # импорт сгенерирован
 stop = False
 sock = None
 app = None
+BUF_SIZE = 1024
 
 def handle_connection(sock, addr, window):
     with sock:
@@ -17,7 +18,7 @@ def handle_connection(sock, addr, window):
         while not stop:
             # Получение сообщения от Клиента
             try:
-                data = sock.recv(1024).decode()
+                data = sock.recv(BUF_SIZE).decode()
 
             except ConnectionError:
                 print(f"Client suddenly closed while receiving")
@@ -89,7 +90,7 @@ class ServerThread(Thread):
 
     def run(self): 
         HOST = "localhost"
-        PORT = 2233
+        PORT = 2234
         
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serv_sock:
             serv_sock.bind((HOST, PORT))

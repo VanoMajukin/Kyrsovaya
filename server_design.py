@@ -24,6 +24,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.listWidget = QtWidgets.QListWidget(self.verticalLayoutWidget)
+        self.listWidget.setWordWrap(True)
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout.addWidget(self.listWidget)
         MainWindow.setCentralWidget(self.centralwidget)
