@@ -15,7 +15,7 @@ def handle_connection(sock, addr):  # New
         while not stop:
             # Receive
             try:
-                data = sock.recv(1024)
+                data = sock.recv(1024).decode()
 
             except ConnectionError:
                 print(f"Client suddenly closed while receiving")
@@ -26,14 +26,15 @@ def handle_connection(sock, addr):  # New
             if not data:
                 break
             
-            # Process
-            if data == b"CLOSE_CMD":
-                break
-            
-            if data == b"GET_INFO_CMD":
-                now = datetime.datetime.now()
-                data = now.strftime("%d-%m-%Y %H:%M:%S")
-                # data += collectInfo()
+            if(data.find(" | ") != -1):
+                data = data.split(" | ")
+                win_geometry = data[0]
+                title = data[1]
+                print(f"\nwin_geometry: {win_geometry}\ntitle: {title}\n")
+
+            now = datetime.datetime.now()
+            data = now.strftime("%d-%m-%Y %H:%M:%S")
+            # data += collectInfo()
             
             # Send
             print(f"Send: {data} to: {addr}")
@@ -49,12 +50,8 @@ def handle_connection(sock, addr):  # New
 
 if __name__ == "__main__":
     try:
-        if len(sys.argv) != 3:
-            print(f"Usage: {sys.argv[0]} <host> <port>")
-            sys.exit(1)
-
-        HOST = sys.argv[1]
-        PORT = int(sys.argv[2])
+        HOST = "localhost"
+        PORT = 2233
         
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serv_sock:
             serv_sock.bind((HOST, PORT))
