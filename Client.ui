@@ -49,18 +49,6 @@
          <property name="wordWrap">
           <bool>true</bool>
          </property>
-         <item>
-          <property name="text">
-           <string>Отправлено на сервер: Ширина и Высота окна</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Получено от сервера: изменяет название окна сервера
-на переданное из клиентского
-приложения</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item>
@@ -114,23 +102,6 @@
          <property name="wordWrap">
           <bool>true</bool>
          </property>
-         <item>
-          <property name="text">
-           <string>Отправлено на сервер: размер файла подкачки и количество свободных байтов файла
-подкачки</string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Получено от сервера: размер файла подкачки 40000 б. кол-во свободных байт 18324 б</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item>
@@ -154,8 +125,49 @@
      <height>37</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Таймер обновления</string>
+    </property>
+    <addaction name="action_1"/>
+    <addaction name="action_2"/>
+    <addaction name="action_3"/>
+    <addaction name="action_4"/>
+    <addaction name="action_5"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="action">
+   <property name="text">
+    <string>Таймер обновления</string>
+   </property>
+  </action>
+  <action name="action_1">
+   <property name="text">
+    <string>По запросу</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>1 мин.</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>5 мин.</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>15 мин.</string>
+   </property>
+  </action>
+  <action name="action_5">
+   <property name="text">
+    <string>1 ч.</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
