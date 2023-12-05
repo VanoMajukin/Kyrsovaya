@@ -1,7 +1,7 @@
 import sys, socket, time
 from PyQt5 import QtWidgets
 from client_design import Ui_MainWindow  # импорт сгенерированного файла
-from threading import Thread 
+from threading import Thread, Lock 
 from enum import Enum
 
 class UpdatePeriod(Enum):
@@ -19,6 +19,8 @@ sock = [None, None]
 sockStatus = [0, 0]
 IS_RECONNECT_ENABLED = False
 updateTimer = UpdatePeriod.OFF.value
+
+mutex = Lock()
 
 class mywindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -39,44 +41,87 @@ class mywindow(QtWidgets.QMainWindow):
 
     # Отправка на сервер 1
     def server_1_Btn_click(self):
-        global sock
+        global sock, sockStatus
 
+        print(f"sockStatus[0]: {sockStatus[0]}")
+
+        # получение ширины и высоты окна 
+        data = str(self.ui.centralwidget.geometry().width())
+        data += 'x' + str(self.ui.centralwidget.geometry().height())
+        
+        # Добавление заголовка окна
+        if(len(self.ui.lineEdit.text()) > 0):
+            data += ' | ' + self.ui.lineEdit.text()
+            self.ui.lineEdit.clear()
+
+        # Если сервер уже подключен
         if(sockStatus[0] != 0):
-            # получение ширины и высоты окна 
-            data = str(self.ui.centralwidget.geometry().width())
-            data += 'x' + str(self.ui.centralwidget.geometry().height())
+            try:
+                # Отправка
+                sock[0].sendall(data.encode())
+                print(data)
+                self.ui.listWidget.addItem('Клиент: ' + data)
             
-            # Добавление заголовка окна
-            if(len(self.ui.lineEdit.text()) > 0):
-                data += ' | ' + self.ui.lineEdit.text()
-                self.ui.lineEdit.clear()
+            except OSError:
+                data = 'Ошибка! Сервер 1 не подключен!'
+                print(data)
+                sockStatus[0] = 0
+                self.ui.listWidget.addItem('Клиент: ' + data)
 
-            # Отправка
-            sock[0].sendall(data.encode())
-
-            # Вывод в графический интерфейс
-            self.ui.listWidget.addItem('Клиент: ' + data)
+        # Если сервер еще не подключен
         else:
-            data = 'Ошибка! Сервер не подключен!'
-            self.ui.listWidget.addItem('Клиент: ' + data)
-            print(data)
+            # Пробуем подключиться
+            if(check_server(HOST, PORT[0]) == True):
+                clientThread = ClientThread(window, 0)
+                clientThread.start()
+
+                time.sleep(0.5)
+                self.server_1_Btn_click()
+
+            # Если не удалось подключиться
+            else:
+                data = 'Ошибка! Сервер 1 не подключен!'
+                print(data)
+
+                # Вывод в графический интерфейс
+                self.ui.listWidget.addItem('Клиент: ' + data)
 
     # Отправка на сервер 2
     def server_2_Btn_click(self):
-        global sock
+        global sockStatus
+        data = 'swap'
 
+        # Если сервер уже подключен
         if(sockStatus[1] != 0):
-            data = 'swap'
+            try:
+                # Отправка
+                sock[1].sendall(data.encode())
+                print(data)
+                self.ui.listWidget_2.addItem('Клиент: ' + data)
 
-            # Отправка
-            sock[1].sendall(data.encode())
+            except OSError:
+                data = 'Ошибка! Сервер 2 не подключен!'
+                print(data)
+                sockStatus[1] = 0
+                self.ui.listWidget_2.addItem('Клиент: ' + data)
 
-            # Вывод в графический интерфейс
-            self.ui.listWidget_2.addItem('Клиент: ' + data)
+        # Если сервер еще не подключен
         else:
-            data = 'Ошибка! Сервер не подключен!'
-            self.ui.listWidget_2.addItem('Клиент: ' + data)
-            print(data)
+            # Пробуем подключиться
+            if(check_server(HOST, PORT[1]) == True):
+                clientThread = ClientThread(window, 1)
+                clientThread.start()
+
+                time.sleep(0.5)
+                self.server_2_Btn_click()
+
+            # Если не удалось подключиться
+            else:
+                data = 'Ошибка! Сервер 2 не подключен!'
+                print(data)
+
+                # Вывод в графический интерфейс
+                self.ui.listWidget_2.addItem('Клиент: ' + data)
 
     # Вывод текста в графический интерфейс
     def addItem(self, serverType, data):
@@ -85,6 +130,7 @@ class mywindow(QtWidgets.QMainWindow):
         else:
             self.ui.listWidget_2.addItem('Сервер: ' + data)
 
+        print(data)
 
     # Выключить таймер обновления
     def onAction_1_Clicked(self):
@@ -123,37 +169,37 @@ class ClientThread(Thread):
         self.serverType = serverType
         
     def run(self): 
-        global HOST, PORT
+        global HOST, PORT, sock, sockStatus
         is_started = False
 
         while IS_RECONNECT_ENABLED or not is_started:
             is_started = True
-            print("\nCreate client")
+            print("\nКлиент создан")
 
-            global sock, sockStatus
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock[self.serverType]:
                 sock[self.serverType].connect((HOST, PORT[self.serverType]))
                 sockStatus[self.serverType] = 1
-                print(f"Server {self.serverType + 1} connected")
+                print(f"Сервер {self.serverType + 1} подключен")
                 
                 try:
                     self.receiveFunc()
 
                 except KeyboardInterrupt:
-                    print(f"Server {self.serverType + 1} disconnected")
+                    print(f"Сервер {self.serverType + 1} отключен")
                 
                 finally:
                     sock[self.serverType].close()
 
     def receiveFunc(self):
+        global sock
+
         while True:
             # Получение ответа от сервера
             data_bytes = sock[self.serverType].recv(BUF_SIZE)
             data = data_bytes.decode()
-            print("Received: ", repr(data))
             
             if not data:
-                print("Closed by server")
+                print("Сервер закрыл соединение")
                 break
 
             if(data.find(" | ") != -1):
@@ -172,15 +218,28 @@ def checkUpdateTimer(window):
             window.server_2_Btn_click()
             time.sleep(updateTimer.value)
 
+def check_server(ip, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((ip, port))
+        s.shutdown(socket.SHUT_RDWR)
+        return True
+    except:
+        return False
+    finally:
+        s.close()
+
 if __name__ == "__main__":   
     app = QtWidgets.QApplication(sys.argv)
     window = mywindow()
 
-    clientThread = ClientThread(window, 0)
-    clientThread.start()
+    if(check_server(HOST, PORT[0]) == True):
+        clientThread = ClientThread(window, 0)
+        clientThread.start()
 
-    clientThread = ClientThread(window, 1)
-    clientThread.start()
+    if(check_server(HOST, PORT[1]) == True):
+        clientThread = ClientThread(window, 1)
+        clientThread.start()
     
     # t = Thread(target= checkUpdateTimer, args= (window))  # New
     # t.start()

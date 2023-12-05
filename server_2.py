@@ -13,7 +13,9 @@ BUF_SIZE = 1024
 
 def handle_connection(sock, addr, window):
     with sock:
-        print("Connected by", addr)
+        answer = f'Клиент {addr} подключен'
+        print(answer)
+        window.addItem('Сервер: ', answer)
         
         while not stop:
             # Получение сообщения от Клиента
@@ -21,10 +23,10 @@ def handle_connection(sock, addr, window):
                 data = sock.recv(BUF_SIZE).decode()
 
             except ConnectionError:
-                print(f"Client suddenly closed while receiving")
+                print("Ошибка! Клиент отключился во время передачи сообщения!")
                 break
             
-            print(f"Received: {data} from: {addr}")
+            print(f"Получено: {data} от: {addr}")
             
             if not data:
                 break
@@ -38,47 +40,27 @@ def handle_connection(sock, addr, window):
             answer += ' свободно: ' + str(psutil.swap_memory().free) + ' Б.'
             
             # Отправка ответа Клиенту
-            print(f"Send: {answer} to: {addr}")
+            print(f"Отправлено: {answer} кому: {addr}")
             
             try:
                 sock.sendall(answer.encode())
                 window.addItem('Сервер: ', answer)
             
             except ConnectionError:
-                print(f"Client suddenly closed, cannot send")
+                print("Ошибка! Клиент отключился во время передачи сообщения!")
                 break
         
-        print("Disconnected by", addr)
+        answer = f'Клиент {addr} отключился'
+        print(answer)
+        window.addItem('Сервер: ', answer)
 
-# Класс, необходимый для смены заголовка окна сервера
-class generate_insert_frame(QThread):
-    threadSignal = pyqtSignal(str)
-
-    def __init__(self):
-        super().__init__()
-
-    def run(self):
-        global title
-
-        self.threadSignal.emit(title)
-        self.msleep(100)
-        self.stop()
-
-    def stop(self):
-        self.quit()
 
 class mywindow(QMainWindow):
     def __init__(self):
         super(mywindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
-    def changeTitle(self):
-    # Механизм сигналов/слотов передает информацию в главный поток из дочернего 
-    # так как setWindowTitle() работает только из главного потока
-        self.thread = generate_insert_frame() 
-        self.thread.threadSignal.connect(self.setWindowTitle)
-        self.thread.start()
+        self.setWindowTitle("Сервер 2")
 
     def addItem(self, str, data):
         self.ui.listWidget.addItem(str + data)
@@ -93,21 +75,22 @@ class ServerThread(Thread):
         PORT = 2234
         
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serv_sock:
+            serv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
             serv_sock.bind((HOST, PORT))
             serv_sock.listen(1)
-            print("Server started")
+            print("Сервер запущен")
 
             try:
                 while True:
                     global sock
 
-                    print("Waiting for connection...")
+                    print("Ожидает подключения...")
                     sock, addr = serv_sock.accept()
                     t = Thread(target=handle_connection, args=(sock, addr, window))  # New
                     t.start()
 
             except KeyboardInterrupt:
-                print("The server was stopped!")
+                print("Сервер остановлен!")
 
             finally:
                 stop = True
@@ -127,6 +110,7 @@ if __name__ == '__main__':
         
         sys.exit(app.exec_())
     else:
-        print("Server_2 already in use")
+        print("Сервер 2 уже запущен!")
+
 
 
