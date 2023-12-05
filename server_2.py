@@ -6,17 +6,17 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from server_design import Ui_MainWindow  # импорт сгенерированного файла
 
-stop = False
-sock = None
-app = None
-BUF_SIZE = 1024
+stop = False            # Флаг остановки дочерних потоков
+sock = None             # Сокет
+BUF_SIZE = 1024         # Размер буфера для получения сообшения
+oldAnswer = []          # Хранилище информации о последнем запросе информации
 
-oldAnswer = []
-
+# Обработка полученного сообщения
 def handle_connection(sock, addr, window):
     global oldAnswer
     curr = []
 
+    # Получение предыдущей информации для конкретно этого клиента
     for item in oldAnswer:
         if (item[0] == addr):
             curr = item
@@ -70,6 +70,7 @@ def handle_connection(sock, addr, window):
         print(answer)
         window.addItem('Сервер: ', answer)
 
+# Пользовательский интерфейс
 class mywindow(QMainWindow):
     def __init__(self):
         super(mywindow, self).__init__()
@@ -80,6 +81,7 @@ class mywindow(QMainWindow):
     def addItem(self, str, data):
         self.ui.listWidget.addItem(str + data)
 
+# Класс создания сокета подключения
 class ServerThread(Thread):
     def __init__(self, window): 
         Thread.__init__(self) 
@@ -114,6 +116,7 @@ class ServerThread(Thread):
 
 
 if __name__ == '__main__':
+    # Проверка на запушенный экземпляр приложения
     lockfile = QLockFile(QDir.tempPath() + '/server_2.lock')
 
     if lockfile.tryLock(100):

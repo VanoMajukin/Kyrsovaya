@@ -14,11 +14,11 @@ class UpdatePeriod(Enum):
 HOST = "localhost"
 PORT = [2233, 2234]
 
-BUF_SIZE = 1024
-sock = [None, None]
-sockStatus = [0, 0]
-IS_RECONNECT_ENABLED = False
-updateTimer = UpdatePeriod.OFF.value
+BUF_SIZE = 1024                             # Размер буфера для получения сообшения
+sock = [None, None]                         # Сокеты 
+sockStatus = [0, 0]                         # Статусы подключения к серверам
+IS_RECONNECT_ENABLED = False                # Флаг для переподключения при падении клиента
+updateTimer = UpdatePeriod.OFF.value        # Таймер обновления информации
 
 class mywindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -205,6 +205,7 @@ class ClientThread(Thread):
             else:
                 self.window.addItem(self.serverType, data)
 
+# Проверка автообновления
 def checkUpdateTimer():
     global updateTimer, sockStatus, window
 
@@ -218,6 +219,7 @@ def checkUpdateTimer():
             
             time.sleep(updateTimer.value * 60)
 
+# Проверка доступности сервера
 def check_server(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -233,16 +235,19 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = mywindow()
 
+    # Подключение к серверу 1
     if(check_server(HOST, PORT[0]) == True):
         clientThread = ClientThread(window, 0)
         clientThread.start()
 
+    # Подключение к серверу 2
     if(check_server(HOST, PORT[1]) == True):
         clientThread = ClientThread(window, 1)
         clientThread.start()
     
+    # Отправка периодических запросов к серверу
     time.sleep(0.5)
-    t = Thread(target= checkUpdateTimer)  # New
+    t = Thread(target= checkUpdateTimer)
     t.start()
 
     window.show()
