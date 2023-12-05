@@ -11,7 +11,11 @@ sock = None
 app = None
 BUF_SIZE = 1024
 
+oldAnswer = [0, 0]
+
 def handle_connection(sock, addr, window):
+    global oldAnswer
+
     with sock:
         answer = f'Клиент {addr} подключен'
         print(answer)
@@ -31,29 +35,32 @@ def handle_connection(sock, addr, window):
             if not data:
                 break
             
-            # Добавление времени в ответное сообщение 
-            now = datetime.datetime.now()
-            answer = now.strftime("%d-%m-%Y %H:%M:%S")
+            # Проверка изменений
+            if(oldAnswer[0] != psutil.swap_memory().total or oldAnswer[1] != psutil.swap_memory().free):
+                # Добавление времени в ответное сообщение 
+                now = datetime.datetime.now()
+                answer = now.strftime("%d-%m-%Y %H:%M:%S")
 
-            # Сбор информации о файле подкачки
-            answer += ' размер файла подкачки: ' + str(psutil.swap_memory().total) + ' Б.'
-            answer += ' свободно: ' + str(psutil.swap_memory().free) + ' Б.'
-            
-            # Отправка ответа Клиенту
-            print(f"Отправлено: {answer} кому: {addr}")
-            
-            try:
-                sock.sendall(answer.encode())
-                window.addItem('Сервер: ', answer)
-            
-            except ConnectionError:
-                print("Ошибка! Клиент отключился во время передачи сообщения!")
-                break
+                # Сбор информации о файле подкачки
+                oldAnswer[0] = psutil.swap_memory().total
+                answer += ' размер файла подкачки: ' + str(oldAnswer[0]) + ' Б.'
+
+                oldAnswer[1] = psutil.swap_memory().free
+                answer += ' свободно: ' + str(oldAnswer[1]) + ' Б.'
+
+                try:
+                    # Отправка ответа Клиенту
+                    sock.sendall(answer.encode())
+                    print(f"Отправлено: {answer} кому: {addr}")
+                    window.addItem('Сервер: ', answer)
+                
+                except ConnectionError:
+                    print("Ошибка! Клиент отключился во время передачи сообщения!")
+                    break
         
         answer = f'Клиент {addr} отключился'
         print(answer)
         window.addItem('Сервер: ', answer)
-
 
 class mywindow(QMainWindow):
     def __init__(self):

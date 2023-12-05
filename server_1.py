@@ -12,8 +12,12 @@ app = None
 BUF_SIZE = 1024
 title =''
 changeWinTitleStatus = 0
+oldAnswer = [0, 0]
 
 def handle_connection(sock, addr, window):
+    global oldAnswer
+    isChanged = False
+
     with sock:
         answer = f'Клиент {addr} подключен'
         print(answer)
@@ -32,7 +36,7 @@ def handle_connection(sock, addr, window):
             
             if not data:
                 break
-            
+
             # Добавление времени в ответное сообщение 
             now = datetime.datetime.now()
             answer = now.strftime("%d-%m-%Y %H:%M:%S")
@@ -41,37 +45,51 @@ def handle_connection(sock, addr, window):
             # Если пришел запрос на изменение заголовка
             if(data.find(" | ") != -1):
                 data = data.split(" | ")
-                window.addItem('Клиент: ', data[0])
-                window.addItem('Клиент: ', data[1])
 
-                win_geometry = data[0]
-                
-                global title
-                title = data[1]
+                print("oldAnswer[0]: ", oldAnswer[0])
+                print("oldAnswer[1]: ", oldAnswer[1])
 
-                window.changeTitle()
-                QThread.msleep(100)
+                # Проверка изменений
+                if(oldAnswer[0] != data[0] or oldAnswer[1] != data[1]):
+                    oldAnswer[0] = data[0]
+                    oldAnswer[1] = data[1]
 
-                # Проверка смены заголовка
-                if(window.windowTitle() == title):
-                    answer += " | Смена заголовка: Успешно"
-                else:
-                    answer += " | Смена заголовка: Ошибка"
+                    window.addItem('Клиент: ', data[0])
+                    window.addItem('Клиент: ', data[1])
+
+                    global title
+                    title = data[1]
+
+                    window.changeTitle()
+                    QThread.msleep(100)
+
+                    # Проверка смены заголовка
+                    if(window.windowTitle() == title):
+                        answer += " | Смена заголовка: Успешно"
+                    else:
+                        answer += " | Смена заголовка: Ошибка"
+
+                    isChanged = True
             else:
-                win_geometry = data
-                window.addItem('Клиент: ', data)
-
-            # Отправка ответа Клиенту
-            print(f"Отправлено: {answer} кому: {addr}")
-            
-            try:
-                sock.sendall(answer.encode())
-                window.addItem('Сервер: ', answer)
-
-            except ConnectionError:
-                print("Ошибка! Клиент отключился во время передачи сообщения!")
-                break
+                # Проверка изменений
+                if(oldAnswer[0] != data):
+                    oldAnswer[0] = data
+                    window.addItem('Клиент: ', data)
+                    isChanged = True
         
+            if(isChanged == True):
+                isChanged = False
+                # Отправка ответа Клиенту
+                print(f"Отправлено: {answer} кому: {addr}")
+                
+                try:
+                    sock.sendall(answer.encode())
+                    window.addItem('Сервер: ', answer)
+
+                except ConnectionError:
+                    print("Ошибка! Клиент отключился во время передачи сообщения!")
+                    break
+
         answer = f'Клиент {addr} отключился'
         print(answer)
         window.addItem('Сервер: ', answer)

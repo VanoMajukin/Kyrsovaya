@@ -18,7 +18,7 @@ BUF_SIZE = 1024
 sock = [None, None]
 sockStatus = [0, 0]
 IS_RECONNECT_ENABLED = False
-updateTimer = UpdatePeriod.ONE_MIN.value
+updateTimer = UpdatePeriod.OFF.value
 
 mutex = Lock()
 
@@ -42,8 +42,6 @@ class mywindow(QtWidgets.QMainWindow):
     # Отправка на сервер 1
     def server_1_Btn_click(self):
         global sock, sockStatus
-
-        print(f"sockStatus[0]: {sockStatus[0]}")
 
         # получение ширины и высоты окна 
         data = str(self.ui.centralwidget.geometry().width())
