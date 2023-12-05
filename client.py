@@ -20,8 +20,6 @@ sockStatus = [0, 0]
 IS_RECONNECT_ENABLED = False
 updateTimer = UpdatePeriod.OFF.value
 
-mutex = Lock()
-
 class mywindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(mywindow, self).__init__()
@@ -218,7 +216,7 @@ def checkUpdateTimer():
             if(sockStatus[1] == 1):
                 window.server_2_Btn_click()
             
-            time.sleep(updateTimer * 60)
+            time.sleep(updateTimer.value * 60)
 
 def check_server(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

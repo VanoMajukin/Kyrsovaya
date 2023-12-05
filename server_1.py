@@ -10,13 +10,19 @@ stop = False
 sock = None
 app = None
 BUF_SIZE = 1024
-title =''
+title = ''
 changeWinTitleStatus = 0
-oldAnswer = [0, 0]
+oldAnswer = []
 
 def handle_connection(sock, addr, window):
     global oldAnswer
     isChanged = False
+    curr = []
+
+    for item in oldAnswer:
+        if (item[0] == addr):
+            curr = item
+            break
 
     with sock:
         answer = f'Клиент {addr} подключен'
@@ -24,6 +30,8 @@ def handle_connection(sock, addr, window):
         window.addItem('Сервер: ', answer)
         
         while not stop:
+            print("curr: ", curr)
+
             # Получение сообщения от Клиента
             try:
                 data = sock.recv(BUF_SIZE).decode()
@@ -46,13 +54,10 @@ def handle_connection(sock, addr, window):
             if(data.find(" | ") != -1):
                 data = data.split(" | ")
 
-                print("oldAnswer[0]: ", oldAnswer[0])
-                print("oldAnswer[1]: ", oldAnswer[1])
-
                 # Проверка изменений
-                if(oldAnswer[0] != data[0] or oldAnswer[1] != data[1]):
-                    oldAnswer[0] = data[0]
-                    oldAnswer[1] = data[1]
+                if(curr[1] != data[0] or curr[2] != data[1]):
+                    curr[1] = data[0]
+                    curr[2] = data[1]
 
                     window.addItem('Клиент: ', data[0])
                     window.addItem('Клиент: ', data[1])
@@ -72,8 +77,8 @@ def handle_connection(sock, addr, window):
                     isChanged = True
             else:
                 # Проверка изменений
-                if(oldAnswer[0] != data):
-                    oldAnswer[0] = data
+                if(curr[1] != data):
+                    curr[1] = data
                     window.addItem('Клиент: ', data)
                     isChanged = True
         
@@ -149,6 +154,7 @@ class ServerThread(Thread):
 
                     print("Ожидает подключения...")
                     sock, addr = serv_sock.accept()
+                    oldAnswer.append([addr, 0, 0])
                     t = Thread(target=handle_connection, args=(sock, addr, window))
                     t.start()
 

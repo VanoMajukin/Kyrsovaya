@@ -11,10 +11,16 @@ sock = None
 app = None
 BUF_SIZE = 1024
 
-oldAnswer = [0, 0]
+oldAnswer = []
 
 def handle_connection(sock, addr, window):
     global oldAnswer
+    curr = []
+
+    for item in oldAnswer:
+        if (item[0] == addr):
+            curr = item
+            break
 
     with sock:
         answer = f'Клиент {addr} подключен'
@@ -22,6 +28,8 @@ def handle_connection(sock, addr, window):
         window.addItem('Сервер: ', answer)
         
         while not stop:
+            print("curr: ", curr)
+
             # Получение сообщения от Клиента
             try:
                 data = sock.recv(BUF_SIZE).decode()
@@ -36,17 +44,17 @@ def handle_connection(sock, addr, window):
                 break
             
             # Проверка изменений
-            if(oldAnswer[0] != psutil.swap_memory().total or oldAnswer[1] != psutil.swap_memory().free):
+            if(curr[1] != psutil.swap_memory().total or curr[2] != psutil.swap_memory().free):
                 # Добавление времени в ответное сообщение 
                 now = datetime.datetime.now()
                 answer = now.strftime("%d-%m-%Y %H:%M:%S")
 
                 # Сбор информации о файле подкачки
-                oldAnswer[0] = psutil.swap_memory().total
-                answer += ' размер файла подкачки: ' + str(oldAnswer[0]) + ' Б.'
+                curr[1] = psutil.swap_memory().total
+                answer += ' размер файла подкачки: ' + str(curr[1]) + ' Б.'
 
-                oldAnswer[1] = psutil.swap_memory().free
-                answer += ' свободно: ' + str(oldAnswer[1]) + ' Б.'
+                curr[2] = psutil.swap_memory().free
+                answer += ' свободно: ' + str(curr[2]) + ' Б.'
 
                 try:
                     # Отправка ответа Клиенту
@@ -93,6 +101,7 @@ class ServerThread(Thread):
 
                     print("Ожидает подключения...")
                     sock, addr = serv_sock.accept()
+                    oldAnswer.append([addr, 0, 0])
                     t = Thread(target=handle_connection, args=(sock, addr, window))  # New
                     t.start()
 
