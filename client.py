@@ -18,7 +18,7 @@ BUF_SIZE = 1024
 sock = [None, None]
 sockStatus = [0, 0]
 IS_RECONNECT_ENABLED = False
-updateTimer = UpdatePeriod.OFF.value
+updateTimer = UpdatePeriod.ONE_MIN.value
 
 mutex = Lock()
 
@@ -209,14 +209,18 @@ class ClientThread(Thread):
             else:
                 self.window.addItem(self.serverType, data)
 
-def checkUpdateTimer(window):
-    global updateTimer
+def checkUpdateTimer():
+    global updateTimer, sockStatus, window
 
     while True:
-        if(updateTimer.name != UpdatePeriod.OFF.name):
-            window.server_1_Btn_click()
-            window.server_2_Btn_click()
-            time.sleep(updateTimer.value)
+        if(updateTimer != UpdatePeriod.OFF.value):
+            if(sockStatus[0] == 1):
+                window.server_1_Btn_click()
+            
+            if(sockStatus[1] == 1):
+                window.server_2_Btn_click()
+            
+            time.sleep(updateTimer * 60)
 
 def check_server(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -241,8 +245,9 @@ if __name__ == "__main__":
         clientThread = ClientThread(window, 1)
         clientThread.start()
     
-    # t = Thread(target= checkUpdateTimer, args= (window))  # New
-    # t.start()
+    time.sleep(0.5)
+    t = Thread(target= checkUpdateTimer)  # New
+    t.start()
 
     window.show()
     sys.exit(app.exec_())
