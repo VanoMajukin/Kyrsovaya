@@ -48,7 +48,7 @@ def handle_connection(sock, addr, window):
             # Добавление времени в ответное сообщение 
             now = datetime.datetime.now()
             answer = now.strftime("%d-%m-%Y %H:%M:%S")
-            answer += " Ширина и высота окна получены"
+            answer += " Получена GPU: "
 
             # Если пришел запрос на изменение заголовка
             if(data.find(" | ") != -1):
@@ -68,13 +68,7 @@ def handle_connection(sock, addr, window):
                     window.changeTitle()
                     QThread.msleep(100)
 
-                    # Проверка смены заголовка
-                    if(window.windowTitle() == title):
-                        answer += " | Смена заголовка: Успешно"
-                    else:
-                        answer += " | Смена заголовка: Ошибка"
-
-                    isChanged = True
+                    
             else:
                 # Проверка изменений
                 if(curr[1] != data):

@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets
 from client_design import Ui_MainWindow  # импорт сгенерированного файла
 from threading import Thread, Lock 
 from enum import Enum
-
+import os
 class UpdatePeriod(Enum):
     OFF = 0
     ONE_MIN = 1
@@ -41,15 +41,15 @@ class mywindow(QtWidgets.QMainWindow):
     def server_1_Btn_click(self):
         global sock, sockStatus
 
-        # получение ширины и высоты окна 
-        data = str(self.ui.centralwidget.geometry().width())
-        data += 'x' + str(self.ui.centralwidget.geometry().height())
+        # # получение ширины и высоты окна 
+        # data = str(self.ui.centralwidget.geometry().width())
+        # data += 'x' + str(self.ui.centralwidget.geometry().height())
         
-        # Добавление заголовка окна
-        if(len(self.ui.lineEdit.text()) > 0):
-            data += ' | ' + self.ui.lineEdit.text()
-            self.ui.lineEdit.clear()
-
+        # # Добавление заголовка окна
+        # if(len(self.ui.lineEdit.text()) > 0):
+        #     data += ' | ' + self.ui.lineEdit.text()
+        #     self.ui.lineEdit.clear()
+        data = str(os.system("inxi -G | grep 'Device-1' | awk '{print $4 " " $5 " " $6 " " $7}' | tr -d '[]'"))
         # Если сервер уже подключен
         if(sockStatus[0] != 0):
             try:
