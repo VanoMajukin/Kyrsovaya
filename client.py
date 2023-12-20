@@ -11,7 +11,7 @@ class UpdatePeriod(Enum):
     FIFETEEN_MIN = 15
     ONE_HOUR = 60
 
-HOST = "localhost"
+HOST = "192.168.1.7"
 PORT = [2233, 2234]
 
 BUF_SIZE = 1024                             # Размер буфера для получения сообшения
