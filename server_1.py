@@ -49,10 +49,10 @@ def handle_connection(sock, addr, window):
             now = datetime.datetime.now()
             answer = now.strftime("%d-%m-%Y %H:%M:%S")
             
-            # Если пришел запрос на изменение заголовка
+            # Если пришёл GPU
             if(data.find("GPU:") != -1):
 
-                answer += " Получена GPU: "
+                answer += " Получено "
                 answer += data
                 # Отправка ответа Клиенту
                 print(f"Отправлено: {answer} кому: {addr}")
@@ -64,7 +64,7 @@ def handle_connection(sock, addr, window):
                 except ConnectionError:
                     print("Ошибка! Клиент отключился во время передачи сообщения!")
                     break
-
+                       
         answer = f'Клиент {addr} отключился'
         print(answer)
         window.addItem('Сервер: ', answer)

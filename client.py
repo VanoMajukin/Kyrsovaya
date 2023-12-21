@@ -66,9 +66,7 @@ class mywindow(QtWidgets.QMainWindow):
     def server_1_Btn_click(self):
         global sock, sockStatus
 
-        # # получение ширины и высоты окна 
-        # data = str(self.ui.centralwidget.geometry().width())
-        # data += 'x' + str(self.ui.centralwidget.geometry().height())
+
         
         # # Добавление заголовка окна
         # if(len(self.ui.lineEdit.text()) > 0):
@@ -82,6 +80,10 @@ class mywindow(QtWidgets.QMainWindow):
         if gpu_info:
             for gpu in gpu_info:
                 data += gpu['Name'] + ";"
+
+        # получение ширины и высоты окна 
+        data = str(self.ui.listWidget.geometry().width())
+        data += 'x' + str(self.ui.listWidget.geometry().height())
 
         # Если сервер уже подключен
 

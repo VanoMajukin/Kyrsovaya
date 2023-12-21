@@ -39,9 +39,6 @@ class Ui_MainWindow(object):
         self.listWidget.setWordWrap(True)
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout_1.addWidget(self.listWidget)
-        self.lineEdit = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
-        self.lineEdit.setObjectName("lineEdit")
-        self.verticalLayout_1.addWidget(self.lineEdit)
         self.sendToServer_1 = QtWidgets.QPushButton(self.horizontalLayoutWidget)
         self.sendToServer_1.setObjectName("sendToServer_1")
         self.verticalLayout_1.addWidget(self.sendToServer_1)
@@ -107,8 +104,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Клиент"))
-        self.label.setText(_translate("MainWindow", "Сервер 1"))
-        self.lineEdit.setPlaceholderText(_translate("MainWindow", "Название окна сервера"))
+        self.label.setText(_translate("MainWindow", "Сервер 1"))        
         self.sendToServer_1.setText(_translate("MainWindow", "Отправить на сервер"))
         self.label_2.setText(_translate("MainWindow", "Сервер 2"))
         self.sendToServer_2.setText(_translate("MainWindow", "Отправить на сервер"))
