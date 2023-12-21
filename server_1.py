@@ -64,7 +64,21 @@ def handle_connection(sock, addr, window):
                 except ConnectionError:
                     print("Ошибка! Клиент отключился во время передачи сообщения!")
                     break
-                       
+
+             # Если размер области 
+            if(data.find("x") != -1):
+                data = data.split("x")
+                answer += f" Ширина и высота окна получены, ширина: {data[0]}, высота: {data[1]} "
+                print(f"Отправлено: {answer} кому: {addr}")
+                
+                try:
+                    sock.sendall(answer.encode())
+                    window.addItem('Сервер: ', answer)
+
+                except ConnectionError:
+                    print("Ошибка! Клиент отключился во время передачи сообщения!")
+                    break
+
         answer = f'Клиент {addr} отключился'
         print(answer)
         window.addItem('Сервер: ', answer)

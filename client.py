@@ -54,6 +54,7 @@ class mywindow(QtWidgets.QMainWindow):
         # Обработка нажатий кнопок
         self.ui.sendToServer_1.clicked.connect(self.server_1_Btn_click)
         self.ui.sendToServer_2.clicked.connect(self.server_2_Btn_click)
+        self.ui.sendToServer_3.clicked.connect(self.server_3_Btn_click)
 
         # Обработка нажатий меню выбора таймера обновления
         self.ui.action_1.triggered.connect(self.onAction_1_Clicked)
@@ -72,7 +73,7 @@ class mywindow(QtWidgets.QMainWindow):
         # if(len(self.ui.lineEdit.text()) > 0):
         #     data += ' | ' + self.ui.lineEdit.text()
         #     self.ui.lineEdit.clear()
-       
+        
 
         data = "GPU: "
          # Получение информации о видеоадаптере
@@ -81,11 +82,7 @@ class mywindow(QtWidgets.QMainWindow):
             for gpu in gpu_info:
                 data += gpu['Name'] + ";"
 
-        # получение ширины и высоты окна 
-        data = str(self.ui.listWidget.geometry().width())
-        data += 'x' + str(self.ui.listWidget.geometry().height())
-
-        # Если сервер уже подключен
+         # Если сервер уже подключен
 
         if(sockStatus[0] != 0):
             try:
@@ -118,7 +115,47 @@ class mywindow(QtWidgets.QMainWindow):
                 # Вывод в графический интерфейс
                 self.ui.listWidget.addItem('Клиент: ' + data)
 
+    def server_3_Btn_click(self):
+            global sock, sockStatus
+
+            # получение ширины и высоты окна 
+            data = str(self.ui.listWidget.geometry().width())
+            data += 'x' + str(self.ui.listWidget.geometry().height())
+
+            # Если сервер уже подключен
+
+            if(sockStatus[0] != 0):
+                try:
+                    # Отправка
+                    sock[0].sendall(data.encode())
+                    print(data)
+                    self.ui.listWidget.addItem('Клиент: ' + data)
+                
+                except OSError:
+                    data = 'Ошибка! Сервер 1 не подключен!'
+                    print(data)
+                    sockStatus[0] = 0
+                    self.ui.listWidget.addItem('Клиент: ' + data)
+
+            # Если сервер еще не подключен
+            else:
+                # Пробуем подключиться
+                if(check_server(HOST, PORT[0]) == True):
+                    clientThread = ClientThread(window, 0)
+                    clientThread.start()
+
+                    time.sleep(0.5)
+                    self.server_3_Btn_click()
+
+                # Если не удалось подключиться
+                else:
+                    data = 'Ошибка! Сервер 1 не подключен!'
+                    print(data)
+
+                    # Вывод в графический интерфейс
+                    self.ui.listWidget.addItem('Клиент: ' + data)
     # Отправка на сервер 2
+    
     def server_2_Btn_click(self):
         global sockStatus
         data = 'swap'
