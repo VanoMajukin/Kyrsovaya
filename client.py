@@ -3,7 +3,32 @@ from PyQt5 import QtWidgets
 from client_design import Ui_MainWindow  # импорт сгенерированного файла
 from threading import Thread, Lock 
 from enum import Enum
-import os
+import GPUtil
+
+def get_gpu_info() :
+    try:
+        # Получение списка доступных устройств GPU
+        gpus = GPUtil.getGPUs()
+
+        gpu_info = []
+        for gpu in gpus:
+            gpu_info.append({
+                'ID': gpu.id,
+                'Name': gpu.name,
+                'Driver': gpu.driver,
+                'Memory Total': f"{gpu.memoryTotal} MB",
+                'Memory Used': f"{gpu.memoryUsed} MB",
+                'Memory Free': f"{gpu.memoryFree} MB"
+            })
+
+        return gpu_info
+
+    except Exception as e:
+        print(f"Ошибка при получении информации о GPU: {e}")
+        return None
+
+
+
 class UpdatePeriod(Enum):
     OFF = 0
     ONE_MIN = 1
@@ -49,8 +74,17 @@ class mywindow(QtWidgets.QMainWindow):
         # if(len(self.ui.lineEdit.text()) > 0):
         #     data += ' | ' + self.ui.lineEdit.text()
         #     self.ui.lineEdit.clear()
-        data = str(os.system("inxi -G | grep 'Device-1' | awk '{print $4 " " $5 " " $6 " " $7}' | tr -d '[]'"))
+       
+
+        data = "GPU: "
+         # Получение информации о видеоадаптере
+        gpu_info = get_gpu_info()
+        if gpu_info:
+            for gpu in gpu_info:
+                data += gpu['Name'] + ";"
+
         # Если сервер уже подключен
+
         if(sockStatus[0] != 0):
             try:
                 # Отправка

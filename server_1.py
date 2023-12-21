@@ -48,36 +48,12 @@ def handle_connection(sock, addr, window):
             # Добавление времени в ответное сообщение 
             now = datetime.datetime.now()
             answer = now.strftime("%d-%m-%Y %H:%M:%S")
-            answer += " Получена GPU: "
-
+            
             # Если пришел запрос на изменение заголовка
-            if(data.find(" | ") != -1):
-                data = data.split(" | ")
+            if(data.find("GPU:") != -1):
 
-                # Проверка изменений
-                if(curr[1] != data[0] or curr[2] != data[1]):
-                    curr[1] = data[0]
-                    curr[2] = data[1]
-
-                    window.addItem('Клиент: ', data[0])
-                    window.addItem('Клиент: ', data[1])
-
-                    global title
-                    title = data[1]
-
-                    window.changeTitle()
-                    QThread.msleep(100)
-
-                    
-            else:
-                # Проверка изменений
-                if(curr[1] != data):
-                    curr[1] = data
-                    window.addItem('Клиент: ', data)
-                    isChanged = True
-        
-            if(isChanged == True):
-                isChanged = False
+                answer += " Получена GPU: "
+                answer += data
                 # Отправка ответа Клиенту
                 print(f"Отправлено: {answer} кому: {addr}")
                 
@@ -93,22 +69,6 @@ def handle_connection(sock, addr, window):
         print(answer)
         window.addItem('Сервер: ', answer)
 
-# Класс, необходимый для смены заголовка окна сервера
-class generate_insert_frame(QThread):
-    threadSignal = pyqtSignal(str)
-
-    def __init__(self):
-        super().__init__()
-
-    def run(self):
-        global title
-
-        self.threadSignal.emit(title)
-        self.msleep(100)
-        self.stop()
-
-    def stop(self):
-        self.quit()
 
 # Пользовательский интерфейс
 class mywindow(QMainWindow):
@@ -118,12 +78,6 @@ class mywindow(QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle("Сервер 1")
 
-    def changeTitle(self):
-    # Механизм сигналов/слотов передает информацию в главный поток из дочернего 
-    # так как setWindowTitle() работает только из главного потока
-        self.thread = generate_insert_frame() 
-        self.thread.threadSignal.connect(self.setWindowTitle)
-        self.thread.start()
 
     def addItem(self, str, data):
         self.ui.listWidget.addItem(str + data)
@@ -135,7 +89,7 @@ class ServerThread(Thread):
         self.window = window
 
     def run(self): 
-        HOST = "localhost"
+        HOST = "192.168.1.7"
         PORT = 2233
         
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serv_sock:
