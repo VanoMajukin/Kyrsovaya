@@ -43,6 +43,9 @@ class Ui_MainWindow(object):
         self.sendToServer_1.setObjectName("sendToServer_1")
         self.sendToServer_3 = QtWidgets.QPushButton(self.horizontalLayoutWidget)
         self.sendToServer_3.setObjectName(u"sendToServer_3")
+        
+      
+
         self.verticalLayout_1.addWidget(self.sendToServer_1)
         self.verticalLayout_1.addWidget(self.sendToServer_3)
         self.horizontalLayout.addLayout(self.verticalLayout_1)
@@ -53,7 +56,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.line)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+
+     
+       
         self.label_2 = QtWidgets.QLabel(self.horizontalLayoutWidget)
+     
         font = QtGui.QFont()
         font.setPointSize(16)
         font.setBold(True)
@@ -101,6 +108,17 @@ class Ui_MainWindow(object):
         self.menu.addAction(self.action_5)
         self.menubar.addAction(self.menu.menuAction())
 
+        self.combo_box = QtWidgets.QComboBox(self.horizontalLayoutWidget)
+        self.combo_box.addItems(["Байты", "Килобайты", "Мегабайты", "Гигабайты"])
+        
+        self.sendToServer_4 = QtWidgets.QPushButton(self.horizontalLayoutWidget)
+        self.sendToServer_4.setObjectName("sendToServer_4")
+        
+        self.verticalLayout_2.addWidget(self.sendToServer_4)
+        self.verticalLayout_2.addWidget(self.combo_box)
+       
+        
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -111,7 +129,7 @@ class Ui_MainWindow(object):
         self.sendToServer_1.setText(_translate("MainWindow", "Отправить GPU на сервер"))
         self.label_2.setText(_translate("MainWindow", "Сервер 2"))
         self.sendToServer_3.setText(_translate("MainWindow", "Отправить размер клиентской области на сервер"))
-        self.sendToServer_2.setText(_translate("MainWindow", "Отправить на сервер"))
+        self.sendToServer_2.setText(_translate("MainWindow", "Получить количество свободных байтов файла подкачки"))
         self.menu.setTitle(_translate("MainWindow", "Таймер обновления"))
         self.action.setText(_translate("MainWindow", "Таймер обновления"))
         self.action_1.setText(_translate("MainWindow", "По запросу"))
@@ -119,3 +137,4 @@ class Ui_MainWindow(object):
         self.action_3.setText(_translate("MainWindow", "5 мин."))
         self.action_4.setText(_translate("MainWindow", "15 мин."))
         self.action_5.setText(_translate("MainWindow", "1 ч."))
+        self.sendToServer_4.setText("Получить объем используемой физической памяти")

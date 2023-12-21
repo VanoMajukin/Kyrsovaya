@@ -42,19 +42,17 @@ def handle_connection(sock, addr, window):
             
             if not data:
                 break
-            
+
+            # Добавление времени в ответное сообщение 
+            now = datetime.datetime.now()
+            answer = now.strftime("%d-%m-%Y %H:%M:%S")
+
             # Проверка изменений
-            if(curr[1] != psutil.swap_memory().total or curr[2] != psutil.swap_memory().free):
-                # Добавление времени в ответное сообщение 
-                now = datetime.datetime.now()
-                answer = now.strftime("%d-%m-%Y %H:%M:%S")
+            if( data.find("swap_free") != -1 ):
 
                 # Сбор информации о файле подкачки
-                curr[1] = psutil.swap_memory().total
-                answer += ' размер файла подкачки: ' + str(curr[1]) + ' Б.'
-
-                curr[2] = psutil.swap_memory().free
-                answer += ' свободно: ' + str(curr[2]) + ' Б.'
+                swap_free = psutil.swap_memory().free
+                answer += ' свободно: ' + str(swap_free) + ' Б.'
 
                 try:
                     # Отправка ответа Клиенту
@@ -65,7 +63,27 @@ def handle_connection(sock, addr, window):
                 except ConnectionError:
                     print("Ошибка! Клиент отключился во время передачи сообщения!")
                     break
-        
+            else:
+                # используемое место   
+                match data:
+
+                    case "Байты": answer+= " " + str(psutil.virtual_memory().used) + " Байтов"
+                    case "Килобайты": answer+= " " + str(psutil.virtual_memory().used / 1024) + " Килобайтов"
+                    case "Мегабайты": answer+= " " + str(round(psutil.virtual_memory().used / 1048576)) + " Мегабайтов"
+                    case "Гигабайты": answer+= " " + str(round(psutil.virtual_memory().used / 1073741824)) + " Гигабайтов"
+                
+                try:
+                    # Отправка ответа Клиенту
+                    sock.sendall(answer.encode())
+                    print(f"Отправлено: {answer} кому: {addr}")
+                    window.addItem('Сервер: ', answer)
+                
+                except ConnectionError:
+                    print("Ошибка! Клиент отключился во время передачи сообщения!")
+                    break
+                
+
+
         answer = f'Клиент {addr} отключился'
         print(answer)
         window.addItem('Сервер: ', answer)
@@ -88,7 +106,7 @@ class ServerThread(Thread):
         self.window = window
 
     def run(self): 
-        HOST = "localhost"
+        HOST = "192.168.1.7"
         PORT = 2234
         
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serv_sock:

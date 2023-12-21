@@ -55,14 +55,14 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui.sendToServer_1.clicked.connect(self.server_1_Btn_click)
         self.ui.sendToServer_2.clicked.connect(self.server_2_Btn_click)
         self.ui.sendToServer_3.clicked.connect(self.server_3_Btn_click)
-
+        self.ui.sendToServer_4.clicked.connect(self.server_4_Btn_click)
         # Обработка нажатий меню выбора таймера обновления
         self.ui.action_1.triggered.connect(self.onAction_1_Clicked)
         self.ui.action_2.triggered.connect(self.onAction_2_Clicked)
         self.ui.action_3.triggered.connect(self.onAction_3_Clicked)
         self.ui.action_4.triggered.connect(self.onAction_4_Clicked)
         self.ui.action_5.triggered.connect(self.onAction_5_Clicked)
-
+        self.ui.combo_box.currentIndexChanged.connect(self.on_combobox_changed)
     # Отправка на сервер 1
     def server_1_Btn_click(self):
         global sock, sockStatus
@@ -158,7 +158,7 @@ class mywindow(QtWidgets.QMainWindow):
     
     def server_2_Btn_click(self):
         global sockStatus
-        data = 'swap'
+        data = 'swap_free'
 
         # Если сервер уже подключен
         if(sockStatus[1] != 0):
@@ -192,6 +192,48 @@ class mywindow(QtWidgets.QMainWindow):
                 # Вывод в графический интерфейс
                 self.ui.listWidget_2.addItem('Клиент: ' + data)
 
+    # свободная память
+    def server_4_Btn_click(self):
+       
+        global sockStatus
+        data = self.on_combobox_changed()
+
+        # Если сервер уже подключен
+        if(sockStatus[1] != 0):
+            try:
+                # Отправка
+                sock[1].sendall(data.encode())
+                print(data)
+                self.ui.listWidget_2.addItem('Клиент: ' + data)
+
+            except OSError:
+                data = 'Ошибка! Сервер 2 не подключен!'
+                print(data)
+                sockStatus[1] = 0
+                self.ui.listWidget_2.addItem('Клиент: ' + data)
+
+        # Если сервер еще не подключен
+        else:
+            # Пробуем подключиться
+            if(check_server(HOST, PORT[1]) == True):
+                clientThread = ClientThread(window, 1)
+                clientThread.start()
+
+                time.sleep(0.5)
+                self.server_4_Btn_click()
+
+            # Если не удалось подключиться
+            else:
+                data = 'Ошибка! Сервер 2 не подключен!'
+                print(data)
+
+                # Вывод в графический интерфейс
+                self.ui.listWidget_2.addItem('Клиент: ' + data)
+
+    def on_combobox_changed(self):
+        # Этот метод вызывается при изменении выбранного элемента в QComboBox
+        selected_text = self.ui.combo_box.currentText()
+        return selected_text
     # Вывод текста в графический интерфейс
     def addItem(self, serverType, data):
         if(serverType == 0):
