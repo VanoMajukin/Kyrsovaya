@@ -313,12 +313,6 @@ class ClientThread(Thread):
                 print("Сервер закрыл соединение")
                 break
 
-            if(data.find(" | ") != -1):
-                data = data.split(" | ")
-                self.window.addItem(self.serverType, data[0])
-                self.window.addItem(self.serverType, data[1])
-            else:
-                self.window.addItem(self.serverType, data)
 
 # Проверка автообновления
 def checkUpdateTimer():
