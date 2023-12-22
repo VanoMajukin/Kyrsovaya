@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys, socket, time
 from PyQt5 import QtWidgets
 from client_design import Ui_MainWindow  # импорт сгенерированного файла

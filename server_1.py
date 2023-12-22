@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys, socket, datetime
 from threading import Thread 
 from PyQt5 import uic
