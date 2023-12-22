@@ -36,7 +36,7 @@ class UpdatePeriod(Enum):
     FIVE_MIN = 5
     FIFETEEN_MIN = 15
     ONE_HOUR = 60
-
+    
 HOST = "192.168.1.7"
 PORT = [2233, 2234]
 
@@ -67,14 +67,6 @@ class mywindow(QtWidgets.QMainWindow):
     # Отправка на сервер 1
     def server_1_Btn_click(self):
         global sock, sockStatus
-
-
-        
-        # # Добавление заголовка окна
-        # if(len(self.ui.lineEdit.text()) > 0):
-        #     data += ' | ' + self.ui.lineEdit.text()
-        #     self.ui.lineEdit.clear()
-        
 
         data = "GPU: "
          # Получение информации о видеоадаптере
@@ -249,13 +241,14 @@ class mywindow(QtWidgets.QMainWindow):
         global updateTimer
         updateTimer = UpdatePeriod.OFF
         print(f"Таймер обнавления: {updateTimer.name}")
+        updateTimer = UpdatePeriod.OFF.value
 
     # Установить таймер обновления на 1 мин. 
     def onAction_2_Clicked(self):
         global updateTimer
         updateTimer = UpdatePeriod.ONE_MIN
         print(f"Таймер обнавления: {updateTimer.name}")
-
+        
     # Установить таймер обновления на 5 мин. 
     def onAction_3_Clicked(self):
         global updateTimer
@@ -313,14 +306,16 @@ class ClientThread(Thread):
             if not data:
                 print("Сервер закрыл соединение")
                 break
-
+            self.window.addItem(self.serverType, data)        
 
 # Проверка автообновления
 def checkUpdateTimer():
     global updateTimer, sockStatus, window
 
     while True:
+
         if(updateTimer != UpdatePeriod.OFF.value):
+            
             if(sockStatus[0] == 1):
                 window.server_1_Btn_click()
             
